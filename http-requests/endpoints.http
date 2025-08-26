@@ -13,6 +13,28 @@ Content-Type: application/json
 }
 
 ###
+POST http://localhost:8889/api/quizzes
+Content-Type: application/json
+
+{
+  "title": "The Kotlin Logo",
+  "text": "What is depicted on the Kotlin logo?",
+  "options": ["Robot","Capital K","Cup of coffee","Bug"],
+  "answer": [1]
+}
+
+###
+POST http://localhost:8889/api/quizzes
+Content-Type: application/json
+
+{
+  "title": "European Capitals",
+  "text": "What are the capitals of European countries?",
+  "options": ["Kyiv","Paris","Deli","Tokyo"],
+  "answer": [0, 1]
+}
+
+###
 GET http://localhost:8889/api/quizzes/1
 
 ###
@@ -21,4 +43,12 @@ Content-Type: application/json
 
 {
   "answer": [2]
+}
+
+###
+POST http://localhost:8889/api/quizzes/3/solve
+Content-Type: application/json
+
+{
+  "answer": [1, 0]
 }
