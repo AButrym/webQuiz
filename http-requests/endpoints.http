@@ -1,4 +1,14 @@
 ###
+POST http://localhost:8889/api/register
+Content-Type: application/json
+
+{
+  "email": "some@email.com",
+  "password": "min5len"
+}
+
+
+###
 GET http://localhost:8889/api/quizzes
 
 ###

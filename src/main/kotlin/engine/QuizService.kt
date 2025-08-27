@@ -4,7 +4,9 @@ import engine.model.CreateQuizRequest
 import engine.model.QuizAnswerFeedback
 import engine.model.QuizItem
 import engine.model.entity.QuizItemEntity
+import engine.security.UserDetailsImpl
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -15,9 +17,15 @@ import kotlin.jvm.optionals.getOrNull
 class QuizService(
     private val quizItemRepo: QuizItemRepo
 ) {
+    private fun getLoggedUserId(): Int =
+        (SecurityContextHolder.getContext()
+            .authentication.principal
+                as UserDetailsImpl).id
+
     @Transactional
     fun createQuiz(quiz: CreateQuizRequest): QuizItem =
         QuizItemEntity().apply {
+            ownerId = getLoggedUserId()
             title = quiz.title
             text = quiz.text
             options = quiz.options.orEmpty().toMutableList()
@@ -42,5 +50,15 @@ class QuizService(
         }
 
         return if (answer == correct) QuizAnswerFeedback.OK else QuizAnswerFeedback.FAIL
+    }
+
+    @Transactional
+    fun delete(quizId: Int) {
+        val quiz = quizItemRepo.findById(quizId)
+            .orElseThrow{ ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz with id $quizId not found") }
+        if (quiz.ownerId != getLoggedUserId()) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this quiz")
+        }
+        quizItemRepo.delete(quiz)
     }
 }

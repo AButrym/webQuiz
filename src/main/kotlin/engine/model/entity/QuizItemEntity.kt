@@ -10,6 +10,8 @@ class QuizItemEntity(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     override var id: Int? = null,
 
+    var ownerId: Int? = null,
+
     var title: String = "",
     var text: String = "",
 

@@ -1,0 +1,38 @@
+package engine.users
+
+import engine.model.entity.UserEntity
+import engine.security.UserDetailsImpl
+import org.springframework.http.HttpStatus
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
+
+@Service
+class UserService(
+    private val userRepo: UserRepo,
+    private val passwordEncoder: PasswordEncoder
+) : UserDetailsService {
+    override fun loadUserByUsername(username: String?): UserDetails? =
+        userRepo.findByEmail(username!!)?.let {
+            UserDetailsImpl(
+                it.id!!,
+                it.email,
+                it.passwordHash,
+                emptyList()
+            )
+        }
+
+    fun createUser(email: String, password: String) {
+        if (userRepo.existsByEmail(email)) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "User with email $email already exists")
+        }
+        userRepo.save(UserEntity(
+            email = email,
+            passwordHash = passwordEncoder.encode(password)))
+    }
+
+}

@@ -6,6 +6,7 @@ import engine.model.QuizItem
 import engine.model.SolveReq
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -34,4 +35,10 @@ class QuizController(
     fun solve(@PathVariable id: Int,
               @RequestBody solveReq: SolveReq): QuizAnswerFeedback =
         quizService.evalAnswer(id, solveReq.answer.toSet())
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: Int) : ResponseEntity<*> {
+        quizService.delete(id)
+        return ResponseEntity.noContent().build<Any>()
+    }
 }
