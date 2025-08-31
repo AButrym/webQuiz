@@ -1,11 +1,14 @@
 package engine
 
+import engine.model.CompletionDto
 import engine.model.CreateQuizRequest
 import engine.model.QuizAnswerFeedback
 import engine.model.QuizItem
 import engine.model.SolveReq
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -28,8 +31,12 @@ class QuizController(
         quizService.getQuiz(id)
 
     @GetMapping
-    fun getAll(): Collection<QuizItem> =
-        quizService.getAll()
+    fun getAll(pageable: Pageable): Page<QuizItem> =
+        quizService.getAll(pageable)
+
+    @GetMapping("/completed")
+    fun getAllCompletions(pageable: Pageable): Page<CompletionDto> =
+        quizService.getAllCompletions(pageable)
 
     @PostMapping("/{id}/solve")
     fun solve(@PathVariable id: Int,

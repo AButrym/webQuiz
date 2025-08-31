@@ -1,7 +1,12 @@
 package engine.model.entity
 
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.MappedSuperclass
 import org.hibernate.proxy.HibernateProxy
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener::class)
 abstract class JpaBase {
     abstract var id: Int?
 

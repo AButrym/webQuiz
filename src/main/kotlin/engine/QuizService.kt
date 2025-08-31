@@ -1,10 +1,17 @@
 package engine
 
+import engine.model.CompletionDto
 import engine.model.CreateQuizRequest
 import engine.model.QuizAnswerFeedback
 import engine.model.QuizItem
+import engine.model.entity.CompletionEntity
 import engine.model.entity.QuizItemEntity
 import engine.security.UserDetailsImpl
+import engine.users.UserRepo
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -15,8 +22,22 @@ import kotlin.jvm.optionals.getOrNull
 @Transactional(readOnly = true)
 @Service
 class QuizService(
-    private val quizItemRepo: QuizItemRepo
+    private val quizItemRepo: QuizItemRepo,
+    private val completionRepo: CompletionRepo,
+    private val userRepo: UserRepo
 ) {
+    private val log = LoggerFactory.getLogger(QuizService::class.java)
+
+    private companion object {
+        private const val QUIZZES_PAGE_SIZE = 10
+        fun Pageable.withDefaultPageSize() =
+            if (pageSize == QUIZZES_PAGE_SIZE) {
+                this
+            } else {
+                PageRequest.of(pageNumber, QUIZZES_PAGE_SIZE, sort)
+            }
+    }
+
     private fun getLoggedUserId(): Int =
         (SecurityContextHolder.getContext()
             .authentication.principal
@@ -40,8 +61,17 @@ class QuizService(
             ?.toQuizItem()
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz with id $id not found")
 
-    fun getAll() = quizItemRepo.findAll().map { it.toQuizItem() }
+    fun getAll(pageable: Pageable) : Page<QuizItem> {
+        return quizItemRepo.findAll(pageable.withDefaultPageSize())
+            .map { it.toQuizItem() }
+    }
 
+    fun getAllCompletions(pageable: Pageable) : Page<CompletionDto> {
+        val userId = getLoggedUserId()
+        return completionRepo.findByUserId(userId, pageable.withDefaultPageSize())
+    }
+
+    @Transactional
     fun evalAnswer(quizId: Int, answer: Set<Int>): QuizAnswerFeedback {
         val correct = quizItemRepo.findCorrectOptionIndexes(quizId)
 
@@ -49,7 +79,16 @@ class QuizService(
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz with id $quizId not found")
         }
 
-        return if (answer == correct) QuizAnswerFeedback.OK else QuizAnswerFeedback.FAIL
+        return if (answer == correct) {
+            val completion = completionRepo.saveAndFlush(
+                CompletionEntity().apply {
+                    quizItem = quizItemRepo.getReferenceById(quizId)
+                    user = userRepo.getReferenceById(getLoggedUserId())
+                }
+            )
+            log.trace("Saved completion: {}", completion)
+            QuizAnswerFeedback.OK
+        } else QuizAnswerFeedback.FAIL
     }
 
     @Transactional

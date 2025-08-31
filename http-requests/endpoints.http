@@ -9,11 +9,18 @@ Content-Type: application/json
 
 
 ###
-GET http://localhost:8889/api/quizzes
+GET http://localhost:8889/api/quizzes?offset=1&size=10
+Authorization: Basic some@email.com min5len
+
+
+###
+GET http://localhost:8889/api/quizzes/completed?page=0
+Authorization: Basic some@email.com min5len
 
 ###
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
+Authorization: Basic some@email.com min5len
 
 {
   "title": "The Java Logo",
@@ -25,6 +32,7 @@ Content-Type: application/json
 ###
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
+Authorization: Basic some@email.com min5len
 
 {
   "title": "The Kotlin Logo",
@@ -36,6 +44,7 @@ Content-Type: application/json
 ###
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
+Authorization: Basic some@email.com min5len
 
 {
   "title": "European Capitals",
@@ -46,18 +55,21 @@ Content-Type: application/json
 
 ###
 GET http://localhost:8889/api/quizzes/1
+Authorization: Basic some@email.com min5len
 
 ###
 POST http://localhost:8889/api/quizzes/1/solve
 Content-Type: application/json
+Authorization: Basic some@email.com min5len
 
 {
   "answer": [2]
 }
 
 ###
-POST http://localhost:8889/api/quizzes/3/solve
+POST http://localhost:8889/api/quizzes/4/solve
 Content-Type: application/json
+Authorization: Basic some@email.com min5len
 
 {
   "answer": [1, 0]
