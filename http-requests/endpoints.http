@@ -1,26 +1,49 @@
 ###
+# create USER_1
 POST http://localhost:8889/api/register
 Content-Type: application/json
 
 {
-  "email": "some@email.com",
+  "email": "user1@email.com",
+  "password": "password"
+}
+
+###
+# create USER_2
+POST http://localhost:8889/api/register
+Content-Type: application/json
+
+{
+  "email": "user2@email.com",
+  "password": "password"
+}
+
+###
+# get 400 error with invalid e-mail
+POST http://localhost:8889/api/register
+Content-Type: application/json
+
+{
+  "email": "wrong.email",
   "password": "min5len"
 }
 
 
 ###
-GET http://localhost:8889/api/quizzes?offset=1&size=10
-Authorization: Basic some@email.com min5len
-
-
-###
-GET http://localhost:8889/api/quizzes/completed?page=0
-Authorization: Basic some@email.com min5len
+# get list of created quizzes (default is page 0 size 10)
+GET http://localhost:8889/api/quizzes
+Authorization: Basic user1@email.com password
 
 ###
+# get list of created quizzes, page=1 (empty)
+GET http://localhost:8889/api/quizzes?page=1
+Authorization: Basic user1@email.com password
+
+###
+# create a quiz item #1 by USER_1
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
-Authorization: Basic some@email.com min5len
+Authorization: Basic user1@email.com password
 
 {
   "title": "The Java Logo",
@@ -30,9 +53,10 @@ Authorization: Basic some@email.com min5len
 }
 
 ###
+# create a quiz item #2 by USER_2
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
-Authorization: Basic some@email.com min5len
+Authorization: Basic user2@email.com password
 
 {
   "title": "The Kotlin Logo",
@@ -42,9 +66,10 @@ Authorization: Basic some@email.com min5len
 }
 
 ###
+# create a quiz item #3 by USER_1
 POST http://localhost:8889/api/quizzes
 Content-Type: application/json
-Authorization: Basic some@email.com min5len
+Authorization: Basic user1@email.com password
 
 {
   "title": "European Capitals",
@@ -54,23 +79,51 @@ Authorization: Basic some@email.com min5len
 }
 
 ###
+# USER_1 gets quiz #1
 GET http://localhost:8889/api/quizzes/1
-Authorization: Basic some@email.com min5len
+Authorization: Basic user1@email.com password
 
 ###
+# USER_2 gets quiz #1
+GET http://localhost:8889/api/quizzes/1
+Authorization: Basic user2@email.com min5len
+
+###
+# USER_1 correctly solves quiz #1
 POST http://localhost:8889/api/quizzes/1/solve
 Content-Type: application/json
-Authorization: Basic some@email.com min5len
+Authorization: Basic user1@email.com password
 
 {
   "answer": [2]
 }
 
 ###
-POST http://localhost:8889/api/quizzes/4/solve
+# USER_2 correctly solves quiz #3
+POST http://localhost:8889/api/quizzes/3/solve
 Content-Type: application/json
-Authorization: Basic some@email.com min5len
+Authorization: Basic user2@email.com password
 
 {
   "answer": [1, 0]
 }
+
+###
+# USER_2 correctly solves quiz #2
+POST http://localhost:8889/api/quizzes/2/solve
+Content-Type: application/json
+Authorization: Basic user2@email.com password
+
+{
+  "answer": [1]
+}
+
+###
+# completions for USER_2
+GET http://localhost:8889/api/quizzes/completed?page=0
+Authorization: Basic user2@email.com password
+
+###
+# completions for USER_1
+GET http://localhost:8889/api/quizzes/completed?page=0
+Authorization: Basic user1@email.com password
