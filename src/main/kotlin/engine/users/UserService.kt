@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
+typealias JwtToken = String
+
 @Service
 class UserService(
     private val userRepo: UserRepo,
@@ -37,4 +39,11 @@ class UserService(
         return JwtTokensDto(user.id!!, user.email, "fakeJwt", "fakeRefreshJwt")
     }
 
+    fun login(email: String, password: String) : JwtTokensDto {
+        val user = userRepo.findByEmail(email) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        TODO("check password")
+        return JwtTokensDto(user.id!!, user.email, "fakeJwt", "fakeRefreshJwt")
+    }
+
+    fun getJwtToken() : JwtToken = "fakeJwt"
 }

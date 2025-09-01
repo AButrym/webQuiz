@@ -25,4 +25,19 @@ class UserController(
             password = req.password
         )
     }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/api/login")
+    fun login(@Valid @RequestBody req: RegisterUserReq): JwtTokensDto {
+        log.info("Login user: $req")
+        return userService.createUser(
+            email = req.email,
+            password = req.password
+        )
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/api/get-jwt-token")
+    fun getJwtToken(): JwtToken = userService.getJwtToken()
+
 }
