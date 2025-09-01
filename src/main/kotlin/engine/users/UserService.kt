@@ -1,5 +1,6 @@
 package engine.users
 
+import engine.model.JwtTokensDto
 import engine.model.entity.UserEntity
 import engine.security.UserDetailsImpl
 import org.springframework.http.HttpStatus
@@ -25,14 +26,15 @@ class UserService(
             )
         }
 
-    fun createUser(email: String, password: String) {
+    fun createUser(email: String, password: String) : JwtTokensDto {
         if (userRepo.existsByEmail(email)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "User with email $email already exists")
         }
-        userRepo.save(UserEntity(
+        val user = userRepo.save(UserEntity(
             email = email,
             passwordHash = passwordEncoder.encode(password)))
+        return JwtTokensDto(user.id!!, user.email, "fakeJwt", "fakeRefreshJwt")
     }
 
 }

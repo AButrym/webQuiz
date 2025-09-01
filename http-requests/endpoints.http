@@ -19,6 +19,17 @@ Content-Type: application/json
 }
 
 ###
+# create USER_3
+POST http://localhost:8889/api/register
+Content-Type: application/json
+
+{
+  "email": "user3@email.com",
+  "password": "password"
+}
+
+
+###
 # get 400 error with invalid e-mail
 POST http://localhost:8889/api/register
 Content-Type: application/json
