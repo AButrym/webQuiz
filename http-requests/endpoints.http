@@ -92,7 +92,7 @@ Authorization: Basic user2@email.com password
 # USER_1 correctly solves quiz #1
 POST http://localhost:8889/api/quizzes/1/solve
 Content-Type: application/json
-Authorization: Basic user1@email.com password
+Authorization: Basic user2@email.com password
 
 {
   "answer": [2]

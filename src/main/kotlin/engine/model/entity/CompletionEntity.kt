@@ -4,6 +4,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -12,7 +13,9 @@ import java.time.LocalDateTime
 
 
 @Entity(name = "Completion")
-@Table(name = "completions")
+@Table(name = "completions", indexes = [
+    Index(name = "idx_completion_user_id", columnList = "user_id, completedAt")
+])
 class CompletionEntity(
     @Id @GeneratedValue
     override var id: Int? = null,
