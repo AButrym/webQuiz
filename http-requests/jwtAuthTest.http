@@ -1,0 +1,74 @@
+### create USER_1
+POST http://localhost:8889/api/register
+Content-Type: application/json
+
+{
+  "email": "user1@email.com",
+  "password": "password"
+}
+
+> {%
+    client.global.set("access_token", response.body.accessToken);
+    client.global.set("refresh_token", response.body.refreshToken);
+%}
+
+### login as USER_1
+POST http://localhost:8889/api/login
+Content-Type: application/json
+
+{
+  "email": "user1@email.com",
+  "password": "password"
+}
+
+> {%
+    client.global.set("access_token", response.body.accessToken);
+    client.global.set("refresh_token", response.body.refreshToken);
+%}
+
+### refresh access token for current user
+POST http://localhost:8889/api/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh_token}}"
+}
+
+> {% client.global.set("access_token", response.body.accessToken); %}
+
+
+### get list of created quizzes using JWT Authentication
+GET http://localhost:8889/api/quizzes
+# Use token to authorize
+Authorization: Bearer {{access_token}}
+
+### get list of created quizzes using Basic Authentication
+GET http://localhost:8889/api/quizzes
+# Use basic authentication with login:password pair
+Authorization: Basic user1@email.com password
+
+
+### create a quiz item #1 by current user
+POST http://localhost:8889/api/quizzes
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "title": "The Java Logo",
+  "text": "What is depicted on the Java logo?",
+  "options": ["Robot","Tea leaf","Cup of coffee","Bug"],
+  "answer": [2]
+}
+
+### current user correctly solves quiz #1
+POST http://localhost:8889/api/quizzes/1/solve
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "answer": [2]
+}
+
+### completions for current user
+GET http://localhost:8889/api/quizzes/completed?page=0
+Authorization: Bearer {{access_token}}

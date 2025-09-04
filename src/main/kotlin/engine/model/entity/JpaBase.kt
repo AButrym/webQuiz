@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 abstract class JpaBase {
     abstract var id: Int?
 
+    operator fun component1() = id ?: error("ID not set")
+
     private fun getClass(o: Any): Class<*> = if (o is HibernateProxy)
         o.hibernateLazyInitializer.persistentClass
     else o.javaClass

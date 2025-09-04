@@ -1,12 +1,8 @@
 package engine
 
-import engine.model.CompletionDto
-import engine.model.CreateQuizRequest
-import engine.model.QuizAnswerFeedback
-import engine.model.QuizItem
-import engine.model.SolveReq
+import engine.common.logger
+import engine.model.*
 import jakarta.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
@@ -17,14 +13,16 @@ import org.springframework.web.bind.annotation.*
 class QuizController(
     private val quizService: QuizService
 ) {
-    private val log = LoggerFactory.getLogger(QuizController::class.java)
+    private val log = logger()
 
     @PostMapping
-    fun create(@RequestBody @Valid
-               quiz: CreateQuizRequest): QuizItem {
-        log.info("Creating quiz: $quiz")
-        return quizService.createQuiz(quiz)
-    }
+    fun create(
+        @RequestBody @Valid
+        quiz: CreateQuizRequest
+    ): QuizItem =
+        quizService.createQuiz(quiz).also {
+            log.debug("Creating quiz: {}", it)
+        }
 
     @GetMapping("/{id}")
     fun getOne(@PathVariable id: Int): QuizItem =
@@ -39,12 +37,14 @@ class QuizController(
         quizService.getAllCompletions(pageable)
 
     @PostMapping("/{id}/solve")
-    fun solve(@PathVariable id: Int,
-              @RequestBody solveReq: SolveReq): QuizAnswerFeedback =
+    fun solve(
+        @PathVariable id: Int,
+        @RequestBody solveReq: SolveReq
+    ): QuizAnswerFeedback =
         quizService.evalAnswer(id, solveReq.answer.toSet())
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: Int) : ResponseEntity<*> {
+    fun delete(@PathVariable id: Int): ResponseEntity<*> {
         quizService.delete(id)
         return ResponseEntity.noContent().build<Any>()
     }
