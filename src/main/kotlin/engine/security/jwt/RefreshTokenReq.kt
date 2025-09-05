@@ -1,4 +1,4 @@
-package engine.model
+package engine.security.jwt
 
 import jakarta.validation.constraints.NotBlank
 

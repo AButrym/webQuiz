@@ -1,8 +1,8 @@
 package engine.users
 
 import engine.common.logger
-import engine.model.JwtTokensDto
-import engine.model.RefreshTokenReq
+import engine.security.jwt.JwtTokensDto
+import engine.security.jwt.RefreshTokenReq
 import engine.model.RegisterUserReq
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -39,8 +39,7 @@ class UserController(
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping("/api/logout")
-    fun logout(@Valid @RequestBody req: RefreshTokenReq) {
-        log.debug("Logout user: {}", req)
+    fun logout(@Valid @RequestBody req: RefreshTokenReq) =
         userService.logout(req.refreshToken)
-    }
+            .also { log.debug("Logout user: {}", req) }
 }

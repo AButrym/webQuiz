@@ -1,5 +1,6 @@
-package engine.security
+package engine.security.jwt
 
+import engine.security.UserDetailsImpl
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -22,7 +23,7 @@ class JwtAuthFilter(
         if (authHeader?.startsWith("Bearer ") == true) {
             val token = authHeader.substring(7)
             if (jwtService.validate(token)) {
-                val userId = jwtService.parseSubject(token)?.toIntOrNull()
+                val userId = jwtService.parseSubject(token)
                 if (userId != null &&
                     SecurityContextHolder.getContext().authentication == null
                 ) {

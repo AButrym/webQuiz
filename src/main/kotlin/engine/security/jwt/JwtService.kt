@@ -1,56 +1,53 @@
-package engine.security
+package engine.security.jwt
 
-import engine.model.entity.DenylistEntity
-import engine.security.jwt.DenylistRepo
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 @Component
 class JwtService(
     @param:Value("\${jwt.secret:default-secret-which-is-long-enough-32-characters-xyzxyz}")
     private val jwtSecret: String,
-    @param:Value("\${jwt.access-ttl-seconds:900}")
+
+    @param:Value("\${jwt.access-ttl-seconds:1800}")
     private val accessTtlSeconds: Long,
+
     @param:Value("\${jwt.refresh-ttl-seconds:2592000}")
     private val refreshTtlSeconds: Long,
-    private val denylistRepo: DenylistRepo
+
+    private val invalidatedTokenRepo: InvalidatedTokenRepo
 ) {
     private val key by lazy { Keys.hmacShaKeyFor(jwtSecret.toByteArray(StandardCharsets.UTF_8)) }
 
-    fun generateAccessToken(userId: Int, tokenId: String): String {
+    fun generateTokens(userId: Int): JwtTokensDto {
         val now = Instant.now()
-        val exp = now.plusSeconds(accessTtlSeconds)
-        return Jwts.builder()
+        val expAccess = now.plusSeconds(accessTtlSeconds)
+        val expRefresh = now.plusSeconds(refreshTtlSeconds)
+        val tokenId = UUID.randomUUID().toString()
+
+        val accessToken = Jwts.builder()
             .subject(userId.toString())
             .id(tokenId)
-            .expiration(Date.from(exp))
+            .expiration(Date.from(expAccess))
             .signWith(key)
             .compact()
-    }
-
-    fun generateRefreshToken(userId: Int): String {
-        val now = Instant.now()
-        val exp = now.plusSeconds(refreshTtlSeconds)
-        return Jwts.builder()
-            .id(UUID.randomUUID().toString())
+        val refreshToken = Jwts.builder()
             .subject(userId.toString())
-            .expiration(Date.from(exp))
+            .id(tokenId)
+            .expiration(Date.from(expRefresh))
             .audience().add("refresh").and()
             .signWith(key)
             .compact()
+        return JwtTokensDto(accessToken, refreshToken)
     }
 
-    fun parseSubject(token: String): String? = runCatching {
-        Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.subject
-    }.getOrNull()
-
-    fun parseId(token: String): String? = runCatching {
-        Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.id
+    fun parseSubject(token: String): Int? = runCatching {
+        Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.subject.toInt()
     }.getOrNull()
 
     fun validate(token: String): Boolean = runCatching {
@@ -58,7 +55,7 @@ class JwtService(
             .parseSignedClaims(token)
             .payload.let { claims ->
                 claims.expiration.after(Date()) &&
-                !denylistRepo.existsByTokenId(claims.id)
+                        !invalidatedTokenRepo.existsByTokenId(claims.id)
             }
     }.getOrDefault(false)
 
@@ -68,16 +65,16 @@ class JwtService(
             .payload.let { claims ->
                 claims.audience.contains("refresh") &&
                         claims.expiration.after(Date()) &&
-                        !denylistRepo.existsByTokenId(claims.id)
+                        !invalidatedTokenRepo.existsByTokenId(claims.id)
             }
     }.getOrDefault(false)
 
     fun invalidate(refreshToken: String) {
         val payload = Jwts.parser().verifyWith(key).build()
             .parseSignedClaims(refreshToken).payload
-        DenylistEntity(
+        InvalidatedTokenEntity(
             tokenId = payload.id,
             expirationTime = payload.expiration.time
-        ).let { denylistRepo.save(it) }
+        ).let { invalidatedTokenRepo.save(it) }
     }
 }

@@ -34,13 +34,21 @@ Content-Type: application/json
   "refreshToken": "{{refresh_token}}"
 }
 
-> {% client.global.set("access_token", response.body.accessToken); %}
+> {%
+    client.global.set("access_token", response.body.accessToken);
+    client.global.set("refresh_token", response.body.refreshToken);
+%}
 
 
 ### get list of created quizzes using JWT Authentication
 GET http://localhost:8889/api/quizzes
 # Use token to authorize
-Authorization: Bearer {{access_token}}}
+Authorization: Bearer {{access_token}}
+
+### get list of created quizzes using JWT Authentication
+GET http://localhost:8889/api/quizzes
+# Use token to authorize
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwianRpIjoiMGI0OTg3MjctY2IzNi00ZTZkLThmZGEtNzJjNzFmMDUyOWIxIiwiZXhwIjoxNzU3MDk0ODQ1fQ.g4nHuB1Kix6pIs9kJ_xWSUkzCzvcye2dGKzX1_WOzrwZ9PETQR_pwYzX7nAam-ec
 
 ### get list of created quizzes using Basic Authentication
 GET http://localhost:8889/api/quizzes
