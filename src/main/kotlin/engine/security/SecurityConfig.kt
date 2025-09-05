@@ -35,6 +35,7 @@ class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/refresh-token").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/logout").permitAll()
                     //.requestMatchers(HttpMethod.POST, "/actuator/shutdown").permitAll()
                     .anyRequest().authenticated()
             }

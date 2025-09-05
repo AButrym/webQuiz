@@ -40,7 +40,7 @@ Content-Type: application/json
 ### get list of created quizzes using JWT Authentication
 GET http://localhost:8889/api/quizzes
 # Use token to authorize
-Authorization: Bearer {{access_token}}
+Authorization: Bearer {{access_token}}}
 
 ### get list of created quizzes using Basic Authentication
 GET http://localhost:8889/api/quizzes
@@ -72,3 +72,12 @@ Authorization: Bearer {{access_token}}
 ### completions for current user
 GET http://localhost:8889/api/quizzes/completed?page=0
 Authorization: Bearer {{access_token}}
+
+
+###
+POST http://localhost:8889/api/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh_token}}"
+}

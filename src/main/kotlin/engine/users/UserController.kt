@@ -1,7 +1,6 @@
 package engine.users
 
 import engine.common.logger
-import engine.model.JwtTokenDto
 import engine.model.JwtTokensDto
 import engine.model.RefreshTokenReq
 import engine.model.RegisterUserReq
@@ -34,7 +33,14 @@ class UserController(
         ).also { log.debug("Login user: {}", req) }
 
     @PostMapping("/api/refresh-token")
-    fun refresh(@Valid @RequestBody req: RefreshTokenReq): JwtTokenDto =
+    fun refresh(@Valid @RequestBody req: RefreshTokenReq): JwtTokensDto =
         userService.refreshToken(req.refreshToken)
             .also { log.debug("Refresh token: {}", req) }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/api/logout")
+    fun logout(@Valid @RequestBody req: RefreshTokenReq) {
+        log.debug("Logout user: {}", req)
+        userService.logout(req.refreshToken)
+    }
 }

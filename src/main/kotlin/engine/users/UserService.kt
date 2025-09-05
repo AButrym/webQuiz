@@ -1,6 +1,5 @@
 package engine.users
 
-import engine.model.JwtTokenDto
 import engine.model.JwtTokensDto
 import engine.model.entity.UserEntity
 import engine.security.UserDetailsImpl
@@ -30,14 +29,16 @@ class UserService(
         } ?: throw UsernameNotFoundException("User not found")
 
     private fun createTokensForId(id: Int) : JwtTokensDto {
-        val access = jwtService.generateAccessToken(id)
         val refresh = jwtService.generateRefreshToken(id)
+        val tokenId = jwtService.parseId(refresh)
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
+        val access = jwtService.generateAccessToken(id, tokenId)
         return JwtTokensDto(access, refresh)
     }
 
     fun createUser(email: String, password: String) : JwtTokensDto {
         if (userRepo.existsByEmail(email)) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw ResponseStatusException(HttpStatus.CONFLICT,
                 "User with email $email already exists")
         }
         val (id) = userRepo.save(UserEntity(
@@ -55,14 +56,22 @@ class UserService(
         return createTokensForId(user.id!!)
     }
 
-    fun refreshToken(refreshToken: String): JwtTokenDto {
+    fun refreshToken(refreshToken: String): JwtTokensDto {
         if (!jwtService.validateRefresh(refreshToken)) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
         }
+        jwtService.invalidate(refreshToken)
         val userId = jwtService.parseSubject(refreshToken)
             ?.toIntOrNull()
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
 
-        return JwtTokenDto(jwtService.generateAccessToken(userId))
+        return createTokensForId(userId)
+    }
+
+    fun logout(refreshToken: String) {
+        if (!jwtService.validateRefresh(refreshToken)) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
+        }
+        jwtService.invalidate(refreshToken)
     }
 }
