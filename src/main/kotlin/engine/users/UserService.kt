@@ -2,7 +2,9 @@ package engine.users
 
 import engine.security.jwt.JwtTokensDto
 import engine.model.entity.UserEntity
+import engine.security.Role
 import engine.security.UserDetailsImpl
+import engine.security.asGrantedAuthority
 import engine.security.jwt.JwtService
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.userdetails.UserDetails
@@ -25,7 +27,7 @@ class UserService(
                 it.id!!,
                 it.email,
                 it.passwordHash,
-                emptyList()
+                listOf(it.role.asGrantedAuthority)
             )
         } ?: throw UsernameNotFoundException("User not found")
 
@@ -40,10 +42,11 @@ class UserService(
         val (id) = userRepo.save(
             UserEntity(
                 email = email,
-                passwordHash = passwordEncoder.encode(password)
+                passwordHash = passwordEncoder.encode(password),
+                role = Role.USER
             )
         )
-        return jwtService.generateTokens(id)
+        return jwtService.generateTokens(id, Role.USER)
     }
 
     fun login(email: String, password: String): JwtTokensDto {
@@ -51,7 +54,7 @@ class UserService(
         if (!passwordEncoder.matches(password, user.passwordHash)) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
-        return jwtService.generateTokens(user.id!!)
+        return jwtService.generateTokens(user.id!!, user.role)
     }
 
     fun refreshToken(refreshToken: String): JwtTokensDto {
@@ -60,8 +63,10 @@ class UserService(
         }
         val userId = jwtService.parseSubject(refreshToken)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        val role = jwtService.parseRole(refreshToken)
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
         jwtService.invalidate(refreshToken)
-        return jwtService.generateTokens(userId)
+        return jwtService.generateTokens(userId, role)
     }
 
     fun logout(refreshToken: String) {

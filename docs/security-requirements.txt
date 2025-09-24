@@ -1,0 +1,16 @@
+Roles: Admin, Creator, User
+
+User: can solve quizzes;
+      can see his own results/stats;
+
+Creator: can do all that a User can;
+         can create a quiz;
+         can edit his own quiz;
+         can delete his own quiz;
+         can see stats on his quizzes;
+
+Admin:  elevate User to Creator;
+        revoke Creator permission
+        can approve quizzes
+        can delete any quiz
+        can see any stats

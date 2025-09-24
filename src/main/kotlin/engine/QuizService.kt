@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -87,11 +88,6 @@ class QuizService(
 
     @Transactional
     fun delete(quizId: Int) {
-        val quiz = quizItemRepo.findById(quizId)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Quiz with id $quizId not found") }
-        if (quiz.ownerId != secUtils.getLoggedUserId()) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this quiz")
-        }
-        quizItemRepo.delete(quiz)
+        quizItemRepo.deleteById(quizId)
     }
 }

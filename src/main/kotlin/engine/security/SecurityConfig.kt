@@ -51,6 +51,8 @@ class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/refresh-token").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/logout").permitAll()
+//                    .requestMatchers(HttpMethod.POST, "/api/quizzes").hasAnyRole("CREATOR", "ADMIN")
+//                    .requestMatchers(HttpMethod.POST, "/api/quizzes").hasAuthority("ROLE_CREATOR")
                     .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

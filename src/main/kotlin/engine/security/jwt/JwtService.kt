@@ -1,5 +1,6 @@
 package engine.security.jwt
 
+import engine.security.Role
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -24,7 +25,7 @@ class JwtService(
 ) {
     private val key by lazy { Keys.hmacShaKeyFor(jwtSecret.toByteArray(StandardCharsets.UTF_8)) }
 
-    fun generateTokens(userId: Int): JwtTokensDto {
+    fun generateTokens(userId: Int, role: Role): JwtTokensDto {
         val now = Instant.now()
         val expAccess = now.plusSeconds(accessTtlSeconds)
         val expRefresh = now.plusSeconds(refreshTtlSeconds)
@@ -34,12 +35,14 @@ class JwtService(
             .subject(userId.toString())
             .id(tokenId)
             .expiration(Date.from(expAccess))
+            .claim("role", role.name)
             .signWith(key)
             .compact()
         val refreshToken = Jwts.builder()
             .subject(userId.toString())
             .id(tokenId)
             .expiration(Date.from(expRefresh))
+            .claim("role", role.name)
             .audience().add("refresh").and()
             .signWith(key)
             .compact()
@@ -48,6 +51,14 @@ class JwtService(
 
     fun parseSubject(token: String): Int? = runCatching {
         Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.subject.toInt()
+    }.getOrNull()
+
+    fun parseRole(token: String): Role? = runCatching {
+        Jwts.parser().verifyWith(key).build()
+            .parseSignedClaims(token)
+            .payload["role"]?.let {
+                Role.valueOf(it.toString())
+        }
     }.getOrNull()
 
     fun validate(token: String): Boolean = runCatching {

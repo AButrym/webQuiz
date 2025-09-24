@@ -1,6 +1,7 @@
 package engine.security.jwt
 
 import engine.security.UserDetailsImpl
+import engine.security.asGrantedAuthority
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -24,14 +25,15 @@ class JwtAuthFilter(
             val token = authHeader.substring(7)
             if (jwtService.validate(token)) {
                 val userId = jwtService.parseSubject(token)
-                if (userId != null &&
+                val role = jwtService.parseRole(token)
+                if (userId != null && role != null &&
                     SecurityContextHolder.getContext().authentication == null
                 ) {
                     val userDetails = UserDetailsImpl(
                         userId,
                         "User[id=$userId]",
                         "fake_password_hash",
-                        emptyList()
+                        listOf(role.asGrantedAuthority)
                     )
                     val authToken = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
                     authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
