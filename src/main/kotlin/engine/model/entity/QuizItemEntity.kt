@@ -32,6 +32,10 @@ class QuizItemEntity(
     @Column(name = "option_ix")
     var correctOptions: MutableList<Int> = mutableListOf()
 ) : JpaBase() {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id")
+    var quiz: QuizEntity? = null
+
     fun toQuizItem() = QuizItem(
         id ?: error("Quiz item ID not set"),
         title,
